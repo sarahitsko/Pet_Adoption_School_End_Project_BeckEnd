@@ -1,81 +1,61 @@
 const Ajv = require("ajv");
 const ajv = new Ajv();
-require("../server");
 const jwt = require("jsonwebtoken");
 const { getUserByEmailModel } = require("../src/models/user");
 const bcrypt = require("bcrypt");
 const { User } = require("../src/models/user");
-const { JsonWebTokenError } = require("jsonwebtoken");
-const { resolveSchema } = require("ajv/dist/compile");
 
-const myPlaintextPassword = "s0//P4$$w0rD";
-const someOtherPlaintextPassword = "not_bacon";
+// const validateBody = (userSchema) => {
+//   return (req, res, next) => {
+//     const valid = ajv.validate(userSchema, req.body);
+//     if (!valid) {
+//       res.status(400).send(ajv.errors[0].message);
+//       return;
+//     }
+//     next();
+//   };
+// };
 
-const validateBody = (User) => {
-  return (req, res, next) => {
-    const valid = ajv.validate(User, req.body);
-    if (!valid) {
-      res.status(400).send(ajv.errors[0].message);
-      return;
-    }
-    next();
-  };
-};
 const passwordsMatch = (req, res, next) => {
-  console.log("password match");
-  if (req.body.password !== req.body.rePassword) {
-    res.status(400).send("password don't match");
+  const { password, rePassword } = req.body;
+  if (password !== rePassword) {
+    const err = new Error("Passwords don't match");
+    err.statusCode = 400;
+    next(err);
     return;
   }
 
   next();
 };
 
-async function doesUserExists(req, res, next) {
+const isNewUser = async (req, res, next) => {
   const user = await getUserByEmailModel(req.body.email);
   if (user) {
-    res.status(400).send("User already exists");
+    const err = new Error("User already exists");
+    err.statusCode = 400;
+    next(err);
     return;
   }
   next();
-}
-
-const hashPassword = (req, res, next) => {
-  const saltRounds = 10;
-  bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
-    if (err) {
-      res.status(500).send(err.message);
-      return;
-    }
-    req.body.password = hash;
-    next();
-  });
 };
 
-const hashedPassword = async (req, res, next) => {
-  try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      res.status(404).send("User not found! ");
-      return;
-    }
-    const isMatch = await bcrypt.compare(req.body.password, user.password);
-    if (!isMatch) {
-      res.status(400).send("Wrong Password!");
-      return;
-    }
-    next();
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-};
-const userExists = async (req, res, next) => {
-  console.log("userExists middleware");
+// const hashPwd = async (req, res, next) => {
+//   try {
+//     const hash = await bcrypt.hash(req.body.password, 10);
+//     req.body.password = hash;
+//     next();
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// };
+
+const doesUserExist = async (req, res, next) => {
   const user = await getUserByEmailModel(req.body.email);
   if (!user) {
-    res.status(400).send("There is no user under this email");
+    res.status(400).send("User with this email does not exist");
     return;
   }
+  req.body.user = user;
   next();
 };
 
@@ -83,30 +63,29 @@ const auth = (req, res, next) => {
   if (req.path === "/loggedout") {
     return next();
   }
-
   if (!req.cookies.token) {
     res.status(401).send("Must have access token");
     return;
   }
 
-  jwt.verify(req.cookies.token, process.env.SECRET_KEY, (err, decoded) => {
+  jwt.verify(req.cookies.token, process.env.TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      res.status(401).send("Invalid Token");
+      res.status(401).send("Unauthorized");
       return;
     }
+
     if (decoded) {
-      req.body.id = decoded.id;
-      return next();
+      req.body.userId = decoded.id;
+      next();
+      return;
     }
   });
 };
 
 module.exports = {
-  doesUserExists,
-  validateBody,
   passwordsMatch,
-  hashPassword,
-  hashedPassword,
-  userExists,
+  isNewUser,
+  // hashPwd,
+  doesUserExist,
   auth,
 };

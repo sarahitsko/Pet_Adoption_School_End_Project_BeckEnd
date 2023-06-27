@@ -1,72 +1,72 @@
 require("../src/db/mongoose");
 const {
-  User,
+  getUserByEmailModel,
   readAllUsersModel,
   getUserByIdModel,
   userSchema,
+  addUser,
 } = require("../src/models/user");
+const { User } = require("../src/models/user");
 const { savePet } = require("./PetsController");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const SECRET_KEY = process.env.SECRET_KEY;
 
-const login = (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    res.status(404).send("email and password are required");
-    return;
-  }
-  User.findOne({ email }, (err, user) => {
-    if (err) {
-      res.status(400).send(err.message);
-      return;
-    }
-    if (!user) {
-      res.status(404).send("User not found");
-      return;
-    }
-
-    bcrypt.compare(password, user.password, async (err, isMatch) => {
-      if (err) {
-        res.status(400).send(err.message);
-        return;
-      }
-      if (isMatch) {
-        const token = jwt.sign({ id: user._id }, SECRET_KEY);
-        res.cookie("token", token, {
-          maxAge: 90000000,
-          httpOnly: true,
-        });
-        res.send({ token, name: user.name, id: user._id });
-      } else {
-        res.status(400).send("Wrong Password");
-      }
-    });
-  });
-};
-
-const signUp = async (req, res) => {
+const signup = async (req, res) => {
+  const { name, email, password } = req.body;
   try {
-    const newUser = await User.create(req.body);
-    res.status(201).send(newUser);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = {
+      name: name,
+      email: email,
+      password: hashedPassword,
+    };
+
+    const userId = await addUser(newUser);
+    res.send({ userId: userId, ok: true });
   } catch (err) {
-    console.log(err);
-    if (err.name === "ValidationError") {
-      res.status(400).send(err.message);
-    } else if (err.code === 11000) {
-      res.status(409).send("User with that email already exists");
-    } else {
-      res.status(500).send(err.message);
-    }
+    res.status(500).send(err.message);
   }
 };
 
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  console.log("req.body.password:", req.body.password);
+  try {
+    const user = await getUserByEmailModel(email);
+    if (!user) {
+      res.status(400).send("User with this email does not exist");
+      return;
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log("Input Password:", password);
+    console.log("Hashed Password:", user.password);
+    console.log("Password Match:", isMatch);
+
+    if (!isMatch) {
+      res.status(400).send("Incorrect Password");
+      return;
+    }
+    const token = jwt.sign({ id: user._id }, SECRET_KEY, {
+      expiresIn: "1h",
+    });
+
+    res.cookie("token", token, {
+      maxAge: 86000000,
+      httpOnly: true,
+      secure: true,
+    });
+    res.send({ ok: true, userId: user._id, name: user.name });
+  } catch (err) {
+    console.log("Error:", err);
+    res.status(500).send("An error occurred during login");
+  }
+};
 const logOut = (req, res) => {
   try {
-    res.clearCookie("token", {
-      path: "/loggedout",
-      maxAge: 0,
-    });
+    res.clearCookie("token");
     console.log(new Date());
     res.sendStatus(200);
     console.log("Cookie cleared");
@@ -115,7 +115,7 @@ const getUserById = async (req, res, next) => {
 // };
 
 module.exports = {
-  signUp,
+  signup,
   login,
   logOut,
   getAllUsers,

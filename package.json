@@ -19,7 +19,7 @@
   "keywords": [],
   "description": "",
   "dependencies": {
-    "ajv": "^8.11.2",
+    "ajv": "^8.12.0",
     "bcrypt": "^5.1.0",
     "cloudinary": "^1.33.0",
     "cookie-parser": "^1.4.6",
@@ -34,7 +34,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemon": "^2.0.20",
     "uuid": "^9.0.0",
-    "validator": "^13.7.0"
+    "validator": "^13.9.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"

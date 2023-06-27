@@ -2,10 +2,11 @@ const mongoose = require("mongoose");
 require("../db/mongoose");
 const petId = require("../models/pet");
 const validator = require("validator");
-
+const bcrypt = require("bcrypt");
 const { ObjectId } = require("mongodb");
+
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true }, // String is shorthand for {type: String}
+  name: { type: String, required: true, trim: true },
   phoneNumber: {
     type: String,
   },
@@ -23,6 +24,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    maxlength: 60,
     minlength: 6,
     trim: true,
   },
@@ -40,29 +42,21 @@ const userSchema = new mongoose.Schema({
       userId: { type: mongoose.Types.ObjectId, ref: "User" },
     },
   ],
+
   isAdmin: {
     type: Boolean,
+    default: false,
   },
 });
 
 userSchema.methods.generateAuthToken = async function () {
   try {
-    user.token = user.token.concat({ token });
-    await user.save();
+    User.token = User.token.concat({ token });
+    await User.save();
   } catch (err) {
     console.log(err);
   }
 };
-userSchema.pre("save", function (next) {
-  const user = this;
-  bcrypt.hash(user.password, 10, (err, hash) => {
-    if (err) {
-      return next(err);
-    }
-    user.password = hash;
-    next();
-  });
-});
 
 const User = mongoose.model("user", userSchema);
 
@@ -74,14 +68,11 @@ async function addUser(newUser) {
     console.log(err);
   }
 }
-// async function doesUserExistsModel(userName) {
-//   const foundUser = await User. hash({ name: userName });
-//   return foundUser !== null;
-// }
 
 const getUserByEmailModel = async (email) => {
   try {
     const user = await User.findOne({ email: email });
+    console.log("Retrieved User:", user);
     return user;
   } catch (err) {
     console.log(err);
@@ -105,20 +96,6 @@ async function getUserByIdModel(userId) {
     console.log(err);
   }
 }
-
-// async function addPetToUserModel(userId, petId) {
-//   try {
-//     const user = await User.findByIdAndUpdate(
-//       userId,
-//       { $push: { savededPet: petId } },
-//       { new: true }
-//     );
-//     console.log(user.savededPet);
-//     return user;
-//   } catch (err) {
-//     console.log(err);
-//   }
-// }
 
 module.exports = {
   User,
