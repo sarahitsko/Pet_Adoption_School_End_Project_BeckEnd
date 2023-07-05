@@ -35,7 +35,7 @@ const addPet = async (req, res, next) => {
 
 const getAllpets = async (req, res, next) => {
   try {
-    const allPets = await readAllPetsModel(next);
+    const allPets = await readAllPetsModel(req);
     res.send(allPets);
   } catch (err) {
     err.statusCode = 500;

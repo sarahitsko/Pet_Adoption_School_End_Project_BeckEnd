@@ -5,12 +5,16 @@ const { User } = require("../src/models/user");
 const validator = require("validator");
 // Pet details: Type (dog, cat), Name, Adoption Status, Picture, Height, Weight, Color, Bio, Hypoallergenic (yes/no), dietary restrictions, breed of animal (Poodle, Siamese)
 
-async function readAllPetsModel() {
+async function readAllPetsModel(req) {
   try {
-    const cardsList = await Pet.find();
+    const page = req.query.page || 0;
+    const petsPerPage = 9;
+    const cardsList = await Pet.find()
+      .skip(page * petsPerPage)
+      .limit(petsPerPage);
     return cardsList;
   } catch (err) {
-    err.statusCode = 500;
+    throw err;
   }
 }
 

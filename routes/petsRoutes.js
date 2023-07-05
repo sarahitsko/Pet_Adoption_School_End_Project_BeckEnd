@@ -28,6 +28,7 @@ const { upload, generateUrl } = require("../middleware/imagesMiddleware");
 router.post("/", upload.single("petImage"), PetsController.addPet);
 //router.post("/", update.single("petImage"), PetsController.editPet);
 router.get("/", PetsController.getAllpets);
+
 router.get("/:petId", PetsController.getPetById);
 router.get("/search/pet", PetsController.searchPets);
 router.get("/user/:id", PetsController.petByUserId);
