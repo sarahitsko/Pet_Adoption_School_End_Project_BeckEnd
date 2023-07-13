@@ -169,7 +169,16 @@ async function getByUserIdModel(userId) {
     throw err;
   }
 }
-
+async function getRandomPetFromDatabase() {
+  const count = await Pet.countDocuments({
+    imageUrl: { $exists: true, $ne: "" },
+  });
+  const randomIndex = Math.floor(Math.random() * count);
+  const randomPet = await Pet.findOne({
+    imageUrl: { $exists: true, $ne: "" },
+  }).skip(randomIndex);
+  return randomPet;
+}
 module.exports = {
   readAllPetsModel,
   addPetModel,
@@ -182,4 +191,5 @@ module.exports = {
   savedPetModel,
   deleteSavePetModel,
   getByUserIdModel,
+  getRandomPetFromDatabase,
 };

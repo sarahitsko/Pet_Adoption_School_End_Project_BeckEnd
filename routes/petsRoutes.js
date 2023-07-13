@@ -12,7 +12,11 @@ const PetsController = require("../controllers/PetsController");
 
 //////////////////////////////////////////////////////////
 
-const { upload, generateUrl } = require("../middleware/imagesMiddleware");
+const {
+  upload,
+  generateUrl,
+  getRandomImageModel,
+} = require("../middleware/imagesMiddleware");
 
 // router.route('/:Id')
 // .get(auth, CardsController.getAllCards)
@@ -29,6 +33,7 @@ router.post("/", upload.single("petImage"), PetsController.addPet);
 //router.post("/", update.single("petImage"), PetsController.editPet);
 router.get("/", PetsController.getAllpets);
 
+router.get("/images/random", PetsController.getRandomImage);
 router.get("/:petId", PetsController.getPetById);
 router.get("/search/pet", PetsController.searchPets);
 router.get("/user/:id", PetsController.petByUserId);

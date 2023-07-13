@@ -2,6 +2,7 @@ const { Pet } = require("../src/models/pet");
 const { MongoClient, ObjectId } = require("mongodb");
 require("../collection-manager/mongodb");
 // const petsCollection = db.collection("Pets");
+require("../middleware/imagesMiddleware");
 require("../src/db/mongoose");
 
 const {
@@ -16,6 +17,7 @@ const {
   savedPetModel,
   deleteSavePetModel,
   getByUserIdModel,
+  getRandomPetFromDatabase,
 } = require("../models/petsModels");
 
 const addPet = async (req, res, next) => {
@@ -32,6 +34,22 @@ const addPet = async (req, res, next) => {
     }
   }
 };
+
+// const getRandomImage = async (req, res, next) => {
+//   try {
+//     const public_Id = req.file.path;
+//     const imageUrl = cloudinary.url(public_Id, {
+//       width: 500,
+//       height: 500,
+//       crop: "fill",
+//     });
+
+//     res.status(201).send({ imageUrl });
+//   } catch (err) {
+//     console.log(err);
+//     next(err);
+//   }
+// };
 
 const getAllpets = async (req, res, next) => {
   try {
@@ -165,8 +183,19 @@ const petByUserId = async (req, res, next) => {
   }
 };
 
+const getRandomImage = async (req, res, next) => {
+  try {
+    const randomPet = await getRandomPetFromDatabase();
+    res.send({ imageUrl: randomPet.imageUrl });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
 module.exports = {
   addPet,
+  petByUserId,
   getAllpets,
   getPetById,
   editPet,
@@ -175,5 +204,5 @@ module.exports = {
   returnPets,
   savePet,
   deleteSavePet,
-  petByUserId,
+  getRandomImage,
 };

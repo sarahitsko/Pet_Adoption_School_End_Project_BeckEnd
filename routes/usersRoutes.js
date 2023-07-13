@@ -8,8 +8,6 @@ const {
   passwordsMatch,
   doesUserExist,
   isNewUser,
-  // hashPwd,
-
   validateBody,
   auth,
 } = require("../middleware/usersMiddleware");
@@ -29,12 +27,3 @@ router.get("/", UsersController.getAllUsers);
 router.get("/:userId/full", UsersController.getUserById);
 
 module.exports = router;
-
-// router.post(
-//   "/signup",
-//   doesUserExists,
-//   passwordsMatch,
-//   hashPassword,
-//   UsersController.signup
-// );
-// router.post("/login", userExists, hashedPassword, UsersController.login);
