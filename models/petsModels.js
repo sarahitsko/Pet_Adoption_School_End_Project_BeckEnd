@@ -73,7 +73,7 @@ async function editStatusModel(petId, editedStatus) {
       }
     );
 
-    console.log(pet);
+    console.log(pet, editedStatus);
     return pet;
   } catch (err) {
     console.log(err);
