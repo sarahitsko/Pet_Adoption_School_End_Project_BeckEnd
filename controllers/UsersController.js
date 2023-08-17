@@ -4,9 +4,10 @@ const {
   readAllUsersModel,
   getUserByIdModel,
   userSchema,
+  editUserModel,
   addUser,
 } = require("../src/models/user");
-const { User } = require("../src/models/user");
+
 const { savePet } = require("./PetsController");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -58,7 +59,13 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: true,
     });
-    res.send({ ok: true, userId: user._id, name: user.name });
+    res.send({
+      ok: true,
+      userId: user._id,
+      name: user.name,
+      phone: user.phoneNumber,
+      email: user.email,
+    });
   } catch (err) {
     console.log("Error:", err);
     res.status(500).send("An error occurred during login");
@@ -114,12 +121,31 @@ const getUserById = async (req, res, next) => {
 //   }
 // };
 
+const editUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const userInfo = req.body;
+    console.log("userId:", userId);
+    console.log("userInfo:", userInfo);
+    const updatedUser = await editUserModel(userId, userInfo);
+    if (updatedUser) {
+      res.send(updatedUser);
+    } else {
+      res.status(404).send("User not found");
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Failed to edit user");
+    next(err);
+  }
+};
+
 module.exports = {
   signup,
   login,
   logOut,
   getAllUsers,
   getUserById,
-
+  editUser,
   savePet,
 };

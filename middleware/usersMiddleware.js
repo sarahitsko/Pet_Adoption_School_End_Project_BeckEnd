@@ -85,7 +85,7 @@ const auth = (req, res, next) => {
 module.exports = {
   passwordsMatch,
   isNewUser,
-  // hashPwd,
+
   doesUserExist,
   auth,
 };

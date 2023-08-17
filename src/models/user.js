@@ -96,12 +96,24 @@ async function getUserByIdModel(userId) {
     console.log(err);
   }
 }
+const editUserModel = async (userId, updatedUser) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updatedUser },
+      { new: true }
+    );
+    return user;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
 
 module.exports = {
   User,
   addUser,
   getUserByEmailModel,
-  // doesUserExistsModel,
+  editUserModel,
   readAllUsersModel,
   getUserByIdModel,
   userSchema,

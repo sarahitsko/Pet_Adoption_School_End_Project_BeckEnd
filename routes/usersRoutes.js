@@ -25,5 +25,6 @@ router.post("/login", doesUserExist, UsersController.login);
 router.get("/loggedout", auth, UsersController.logOut);
 router.get("/", UsersController.getAllUsers);
 router.get("/:userId/full", UsersController.getUserById);
+router.put("/:userId/edit", UsersController.editUser);
 
 module.exports = router;
