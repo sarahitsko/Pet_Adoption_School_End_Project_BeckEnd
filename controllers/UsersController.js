@@ -42,8 +42,7 @@ const login = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("Input Password:", password);
-    console.log("Hashed Password:", user.password);
+
     console.log("Password Match:", isMatch);
 
     if (!isMatch) {
@@ -124,10 +123,21 @@ const getUserById = async (req, res, next) => {
 const editUser = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const userInfo = req.body;
-    console.log("userId:", userId);
-    console.log("userInfo:", userInfo);
-    const updatedUser = await editUserModel(userId, userInfo);
+    const clientData = req.body;
+
+    let updateFields = {};
+    for (let field in clientData) {
+      if (clientData[field]) {
+        updateFields[field] = clientData[field];
+      }
+    }
+    if (clientData.password) {
+      updateFields.password = await bcrypt.hash(clientData.password, 10);
+    }
+
+    console.log("Update fields:", updateFields);
+
+    const updatedUser = await editUserModel(userId, updateFields);
     if (updatedUser) {
       res.send(updatedUser);
     } else {
